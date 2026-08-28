@@ -45,10 +45,14 @@ const AFTER_CLICK: Record<Platform, { title: string; body: React.ReactNode }> = 
     )
   },
   macos: {
-    title: 'macOS refuse d’ouvrir l’app',
+    title: 'macOS refusera de l’ouvrir au premier lancement',
     body: (
       <>
-        Elle n’est pas encore signée — un correctif est en cours. Windows et Linux fonctionnent.
+        L’app est signée, mais pas certifiée par Apple. Clic droit sur Maestro, puis{' '}
+        <strong className="text-ink-1">Ouvrir</strong>. Si le menu ne propose rien, va dans{' '}
+        <strong className="text-ink-1">Réglages Système → Confidentialité et sécurité</strong>,
+        descends tout en bas et clique <strong className="text-ink-1">Ouvrir quand même</strong>.
+        Une seule fois, la première.
       </>
     )
   },
