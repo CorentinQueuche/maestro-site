@@ -45,11 +45,10 @@ const AFTER_CLICK: Record<Platform, { title: string; body: React.ReactNode }> = 
     )
   },
   macos: {
-    title: 'macOS demandera une confirmation',
+    title: 'macOS refuse d’ouvrir l’app',
     body: (
       <>
-        Clic droit sur l’app, puis <strong className="text-ink-1">Ouvrir</strong>. Une seule fois, la
-        première.
+        Elle n’est pas encore signée — un correctif est en cours. Windows et Linux fonctionnent.
       </>
     )
   },
