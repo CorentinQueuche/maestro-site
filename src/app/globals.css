@@ -1,0 +1,118 @@
+@import 'tailwindcss';
+
+/**
+ * Maestro's palette, carried over from the app rather than reinvented.
+ *
+ * The domain is not bought and we open on a `.vercel.app`, so nothing can be
+ * delegated to a domain name: this page carries the whole identity. Which means
+ * the colours have to be the app's exact colours — a landing that is nearly the
+ * right blue reads as a fan page.
+ */
+@theme {
+  --color-bg-0: oklch(14.5% 0.006 258);
+  --color-bg-1: oklch(17.5% 0.007 258);
+  --color-bg-2: oklch(21% 0.008 258);
+  --color-ink-1: oklch(96% 0.002 258);
+  --color-ink-2: oklch(72% 0.006 258);
+  --color-ink-3: oklch(56% 0.008 258);
+  --color-line: oklch(26% 0.008 258);
+  --color-accent: oklch(62% 0.19 258);
+  --color-accent-ink: oklch(78% 0.14 258);
+
+  --font-sans: 'Google Sans Flex', 'Google Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', 'JetBrains Mono', monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--color-bg-0);
+}
+
+body {
+  background: var(--color-bg-0);
+  color: var(--color-ink-1);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.02em;
+}
+
+/**
+ * The halftone.
+ *
+ * The product's visual signature, and it costs almost nothing here: two radial
+ * gradients on a 4px grid, which is the same cell the shader quantises to. It
+ * carries section grounds and transitions — never a whole page, because a
+ * texture everywhere is a texture nowhere.
+ */
+.halftone {
+  background-image: radial-gradient(var(--color-line) 1px, transparent 1px);
+  background-size: 4px 4px;
+}
+
+/** The blue glow the app puts behind its field, frozen into a static wash. */
+.wash {
+  background:
+    radial-gradient(60% 50% at 50% 0%, oklch(28% 0.09 262 / 0.55), transparent 70%),
+    radial-gradient(40% 40% at 85% 20%, oklch(26% 0.07 250 / 0.4), transparent 70%);
+}
+
+/**
+ * Scroll reveal, in CSS only.
+ *
+ * `animation-timeline: view()` where it exists, and a plain visible state
+ * everywhere else. The fallback is the important half: a reveal implemented in
+ * JS that fails leaves the page BLANK, which is the worst possible failure for
+ * a page whose only job is to be read.
+ */
+.reveal {
+  opacity: 1;
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      opacity: 0;
+      animation: reveal-in linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 26%;
+    }
+  }
+}
+
+/**
+ * Two escape hatches, because an `opacity: 0` default that only recovers
+ * through an animation is a way for a page to be silently blank.
+ *
+ * Printing never advances a scroll timeline, so without this a printed page
+ * is empty below the fold. And a full-page screenshot tool stitches without
+ * scrolling, so it captures the same emptiness — that one is an artefact of
+ * the tool, NOT a bug: scroll the page by hand and everything is there.
+ * Written down because the screenshot looks exactly like a real failure.
+ */
+@media print {
+  .reveal {
+    opacity: 1 !important;
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/** A screenshot is the product here — it gets a frame, not a drop shadow. */
+.shot {
+  border: 1px solid var(--color-line);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--color-bg-1);
+  box-shadow: 0 30px 80px -40px oklch(0% 0 0 / 0.9);
+}

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="7" fill="#12141a"/>
+  <!-- Six panes: the product's one idea, at 32px. -->
+  <g fill="#4b7bec">
+    <rect x="6" y="7" width="5.5" height="8" rx="1.4"/>
+    <rect x="13.25" y="7" width="5.5" height="8" rx="1.4"/>
+    <rect x="20.5" y="7" width="5.5" height="8" rx="1.4"/>
+    <rect x="6" y="17" width="5.5" height="8" rx="1.4" opacity=".55"/>
+    <rect x="13.25" y="17" width="5.5" height="8" rx="1.4" opacity=".55"/>
+    <rect x="20.5" y="17" width="5.5" height="8" rx="1.4" opacity=".55"/>
+  </g>
+</svg>
