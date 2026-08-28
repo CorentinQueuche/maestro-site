@@ -4,15 +4,18 @@ import { useEffect, useState } from 'react'
 import { formatSize, RELEASES_URL, type Download, type Platform } from '@/lib/releases'
 
 /**
- * Guessing the OS is worth it; getting it wrong is not worth guarding against.
+ * Three buttons, always all three, and the one for your OS is the lit one.
  *
- * The browser already knows, so making someone pick from a list is asking a
- * question that has an answer. And the cost of a wrong guess is bounded on
- * purpose: the other two platforms stay visible right underneath, never behind
- * a menu. That is what makes the guess safe to make at all.
+ * The first version showed a single detected button with the other two demoted
+ * to small links. Corentin asked for three explicit downloads, and he is right
+ * about the thing that matters here: someone arriving to download wants to SEE
+ * their file, not trust that a guess went their way. Detection still earns its
+ * place — it just highlights instead of hiding.
  *
- * `null` until mount — the server has no navigator, and rendering a guess
- * during hydration would flash the wrong OS at everyone whose guess differs.
+ * ORDER IS FIXED, never reordered by platform. Putting the detected OS first
+ * would move the other two AFTER hydration, so the row visibly jumps under the
+ * cursor of someone already reaching for a button. Colour says the same thing
+ * and moves nothing.
  */
 function useDetectedPlatform(): Platform | null {
   const [platform, setPlatform] = useState<Platform | null>(null)
@@ -22,7 +25,7 @@ function useDetectedPlatform(): Platform | null {
     if (/Win/i.test(ua)) setPlatform('windows')
     else if (/Mac/i.test(ua)) setPlatform('macos')
     else if (/Linux|X11/i.test(ua)) setPlatform('linux')
-    else setPlatform('windows')
+    else setPlatform(null)
   }, [])
 
   return platform
@@ -60,6 +63,9 @@ const AFTER_CLICK: Record<Platform, { title: string; body: React.ReactNode }> = 
   }
 }
 
+/** The order the buttons are printed in, whatever the visitor runs. */
+const ORDRE: Platform[] = ['windows', 'macos', 'linux']
+
 export function DownloadButtons({
   downloads,
   version
@@ -70,10 +76,11 @@ export function DownloadButtons({
   const detected = useDetectedPlatform()
   const [clicked, setClicked] = useState<Platform | null>(null)
 
-  /* No release published yet — today's state, and a real edge case later (a
-     draft, a rate limit, GitHub down). It says what is true instead of offering
-     a button that leads nowhere: a dead download is worse than an honest wait,
-     because it spends the trust the rest of the page just earned. */
+  /* No release published yet. It stopped being today's state when v0.2.0 went
+     out, but it stays a real one: a draft-only release, GitHub's unauthenticated
+     rate limit on a shared Vercel IP, or GitHub simply down. It says what is
+     true rather than offering a button that leads nowhere — a dead download
+     spends the trust the rest of the page just earned. */
   if (downloads.length === 0) {
     return (
       <div className="reveal">
@@ -84,44 +91,49 @@ export function DownloadButtons({
           Voir les versions sur GitHub
         </a>
         <p className="mt-3 max-w-md text-[13px] leading-relaxed text-ink-3">
-          La première version publique n’est pas encore publiée. Laisse ton email plus bas et tu
-          recevras une ligne quand elle sort.
+          Les fichiers ne sont pas joignables à l’instant. Ils sont toujours sur la page des
+          versions.
         </p>
       </div>
     )
   }
 
-  const principal = downloads.find((d) => d.platform === detected) ?? downloads[0]
-  const autres = downloads.filter((d) => d !== principal)
+  const ordonnes = ORDRE.map((p) => downloads.find((d) => d.platform === p)).filter(
+    (d): d is Download => d !== undefined
+  )
 
   return (
     <div className="reveal">
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-        <a
-          href={principal.url}
-          onClick={() => setClicked(principal.platform)}
-          className="inline-flex items-center rounded-full bg-accent px-6 py-3 text-[15px] font-semibold text-bg-0 transition-opacity hover:opacity-90"
-        >
-          Télécharger pour {principal.label}
-        </a>
-        <div className="flex items-center gap-4 text-[14px] text-ink-2">
-          {autres.map((d) => (
+      <div className="flex flex-wrap gap-3">
+        {ordonnes.map((d) => {
+          const mis = d.platform === detected
+          return (
             <a
               key={d.platform}
               href={d.url}
               onClick={() => setClicked(d.platform)}
-              className="transition-colors hover:text-ink-1"
+              className={`group inline-flex items-baseline gap-2.5 rounded-full px-5 py-3 text-[15px] transition-colors ${
+                mis
+                  ? 'bg-accent font-semibold text-bg-0 hover:opacity-90'
+                  : 'border border-line bg-bg-2 font-medium text-ink-1 hover:border-accent'
+              }`}
             >
               {d.label}
+              {/* The weight is worth its pixels: 116 Mo is a decision on a phone
+                  tethered to a laptop, and finding it out mid-download is worse
+                  than reading it first. */}
+              <span
+                className={`font-mono text-[12px] ${mis ? 'text-bg-0/70' : 'text-ink-3'}`}
+              >
+                {formatSize(d.size)}
+              </span>
             </a>
-          ))}
-        </div>
+          )
+        })}
       </div>
 
       <p className="mt-3 font-mono text-[12px] text-ink-3">
-        {version ? `v${version}` : null}
-        {version ? ' · ' : null}
-        {formatSize(principal.size)} · Gratuit
+        {version ? `v${version} · ` : null}Gratuit · Il te faut Claude Code sur ta machine
       </p>
 
       {/* Never before the click. Before, it is a deterrent for a problem you do
