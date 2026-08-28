@@ -6,3 +6,6 @@ out/
 .env*.local
 next-env.d.ts
 tsconfig.tsbuildinfo
+
+# Captures de relecture de la page — jetables, regenerables
+.previews/
