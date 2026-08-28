@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { formatSize, RELEASES_URL, type Download, type Platform } from '@/lib/releases'
+import { OsIcon } from './os-icons'
 
 /**
  * Three buttons, always all three, and the one for your OS is the lit one.
@@ -118,6 +119,7 @@ export function DownloadButtons({
                   : 'border border-line bg-bg-2 font-medium text-ink-1 hover:border-accent'
               }`}
             >
+              <OsIcon platform={d.platform} />
               {d.label}
               {/* The weight is worth its pixels: 116 Mo is a decision on a phone
                   tethered to a laptop, and finding it out mid-download is worse
