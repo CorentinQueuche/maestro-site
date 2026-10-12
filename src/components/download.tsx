@@ -155,6 +155,7 @@ export function DownloadButtons({
               télécharger cette version
             </a>{' '}
             <span className="font-mono text-[12px]">{formatSize(d.alternate.size)}</span>
+            {d.alternate.untested ? ' · non testé' : null}
           </p>
         ) : null
       )}

@@ -28,7 +28,7 @@ export interface Download {
   /** Bytes, for « 103 Mo » next to the button. */
   size: number
   /** A second build for the same OS — the Intel .dmg beside the Apple Silicon one. */
-  alternate?: { label: string; url: string; size: number }
+  alternate?: { label: string; url: string; size: number; untested?: boolean }
 }
 
 export interface Release {
@@ -66,7 +66,7 @@ const MATCHERS: {
   label: string
   test: (name: string) => boolean
   /** Same OS, other architecture: offered as a small link, never as a fourth button. */
-  alternate?: { label: string; test: (name: string) => boolean }
+  alternate?: { label: string; test: (name: string) => boolean; untested?: boolean }
 }[] = [
   { platform: 'windows', label: 'Windows', test: (n) => n.endsWith('.exe') },
   // Apple Silicon is the button: every Mac sold since 2020. Intel is the link.
@@ -75,7 +75,8 @@ const MATCHERS: {
     platform: 'macos',
     label: 'macOS',
     test: (n) => n.endsWith('.dmg') && !n.endsWith('-x64.dmg'),
-    alternate: { label: 'Mac Intel', test: (n) => n.endsWith('-x64.dmg') }
+    // Built and signed, but never started on a real Intel Mac (12/10, Cicco).
+    alternate: { label: 'Mac Intel', test: (n) => n.endsWith('-x64.dmg'), untested: true }
   },
   { platform: 'linux', label: 'Linux', test: (n) => n.endsWith('.AppImage') }
 ]
@@ -114,7 +115,8 @@ export async function latestRelease(): Promise<Release | null> {
         url: asset.browser_download_url,
         size: asset.size,
         ...(alternate && other && other !== asset
-          ? { alternate: { label: alternate.label, url: other.browser_download_url, size: other.size } }
+          ? { alternate: { label: alternate.label, url: other.browser_download_url, size: other.size,
+              ...(alternate.untested ? { untested: true } : {}) } }
           : {})
       })
     }
