@@ -141,6 +141,24 @@ export function DownloadButtons({
         {version ? `v${version} · ` : null}Gratuit · Il te faut Claude Code sur ta machine
       </p>
 
+      {/* The other Mac architecture, as a link under the row: the three
+          buttons stay three, and the Apple Silicon file stays the obvious one. */}
+      {ordonnes.map((d) =>
+        d.alternate ? (
+          <p key={`${d.platform}-alt`} className="mt-1.5 text-[13px] text-ink-3">
+            {d.alternate.label} :{' '}
+            <a
+              href={d.alternate.url}
+              onClick={() => setClicked(d.platform)}
+              className="text-ink-2 underline underline-offset-2 transition-colors hover:text-ink-1"
+            >
+              télécharger cette version
+            </a>{' '}
+            <span className="font-mono text-[12px]">{formatSize(d.alternate.size)}</span>
+          </p>
+        ) : null
+      )}
+
       {/* Never before the click. Before, it is a deterrent for a problem you do
           not have yet; after, it is help arriving exactly when it is needed. */}
       {clicked && (

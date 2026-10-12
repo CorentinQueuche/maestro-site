@@ -27,6 +27,8 @@ export interface Download {
   url: string
   /** Bytes, for « 103 Mo » next to the button. */
   size: number
+  /** A second build for the same OS — the Intel .dmg beside the Apple Silicon one. */
+  alternate?: { label: string; url: string; size: number }
 }
 
 export interface Release {
@@ -59,9 +61,22 @@ interface GitHubRelease {
  * Deliberately loose on the version so a naming change does not silently drop
  * a platform: an extension is what actually identifies the installer.
  */
-const MATCHERS: { platform: Platform; label: string; test: (name: string) => boolean }[] = [
+const MATCHERS: {
+  platform: Platform
+  label: string
+  test: (name: string) => boolean
+  /** Same OS, other architecture: offered as a small link, never as a fourth button. */
+  alternate?: { label: string; test: (name: string) => boolean }
+}[] = [
   { platform: 'windows', label: 'Windows', test: (n) => n.endsWith('.exe') },
-  { platform: 'macos', label: 'macOS', test: (n) => n.endsWith('.dmg') },
+  // Apple Silicon is the button: every Mac sold since 2020. Intel is the link.
+  // A release with a single .dmg, whatever its arch, still fills the button.
+  {
+    platform: 'macos',
+    label: 'macOS',
+    test: (n) => n.endsWith('.dmg') && !n.endsWith('-x64.dmg'),
+    alternate: { label: 'Mac Intel', test: (n) => n.endsWith('-x64.dmg') }
+  },
   { platform: 'linux', label: 'Linux', test: (n) => n.endsWith('.AppImage') }
 ]
 
@@ -89,10 +104,19 @@ export async function latestRelease(): Promise<Release | null> {
     if (data.draft) return null
 
     const downloads: Download[] = []
-    for (const { platform, label, test } of MATCHERS) {
-      const asset = data.assets?.find((a) => test(a.name))
+    for (const { platform, label, test, alternate } of MATCHERS) {
+      const other = alternate && data.assets?.find((a) => alternate.test(a.name))
+      const asset = data.assets?.find((a) => test(a.name)) ?? other
       if (!asset) continue
-      downloads.push({ platform, label, url: asset.browser_download_url, size: asset.size })
+      downloads.push({
+        platform,
+        label,
+        url: asset.browser_download_url,
+        size: asset.size,
+        ...(alternate && other && other !== asset
+          ? { alternate: { label: alternate.label, url: other.browser_download_url, size: other.size } }
+          : {})
+      })
     }
 
     return {
